@@ -1,2 +1,68 @@
-<svg xmlns="http://www.w3.org/2000/svg" style="display:block;width:100vw;height:100vh;background:#000"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;margin:0;background:#000;color:#fff;font:14px system-ui,sans-serif"><div id="refract-status" role="status" style="box-sizing:border-box;display:flex;width:100%;height:100%;align-items:center;justify-content:center;padding:24px;text-align:center">Loading Refract…</div><iframe id="refract-frame" title="Refract" style="display:none;width:100%;height:100%;border:0;background:#000"></iframe></div></foreignObject><script><![CDATA[(async()=>{const o=document.getElementById("refract-status"),a=document.getElementById("refract-frame"),l=e=>{o.textContent="Unable to start Refract: "+(e&&e.message?e.message:String(e)),o.setAttribute("data-error","")};try{if(new URL(location.href).searchParams.has("refract-bootstrap-error"))throw new Error("bootstrap error test");if(!("serviceWorker"in navigator))throw new Error("service workers are unavailable");const e=new URL("./",location.href).href,i=await navigator.serviceWorker.register(new URL("./GQC2eo6.js",location.href),{scope:e});let r=i.active||i.waiting||i.installing;if(!r)throw new Error("service worker is unavailable");if(r.state!=="activated"&&await new Promise((s,c)=>{const t=()=>{r.state==="activated"?(r.removeEventListener("statechange",t),s()):r.state==="redundant"&&(r.removeEventListener("statechange",t),c(new Error("service worker activation failed")))};r.addEventListener("statechange",t),t()}),navigator.serviceWorker.controller||await new Promise((s,c)=>{const t=setTimeout(()=>{navigator.serviceWorker.removeEventListener("controllerchange",n),c(new Error("service worker control timed out"))},5e3),n=()=>{navigator.serviceWorker.controller&&(clearTimeout(t),navigator.serviceWorker.removeEventListener("controllerchange",n),s())};navigator.serviceWorker.addEventListener("controllerchange",n),n()}),window.parent!==window&&location.hash==="#refract-launcher"){parent.postMessage("refract-sw-ready","*");return}a.addEventListener("load",()=>{o.hidden=!0,a.style.display="block"},{once:!0}),a.addEventListener("error",()=>l(new Error("application frame failed to load")),{once:!0}),a.setAttribute("src",e)}catch(e){l(e)}})();
+<svg xmlns="http://www.w3.org/2000/svg" style="display:block;width:100vw;height:100vh;background:#000"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;margin:0;background:#000;color:#fff;font:14px system-ui,sans-serif"><div id="refract-status" role="status" style="box-sizing:border-box;display:flex;width:100%;height:100%;align-items:center;justify-content:center;padding:24px;text-align:center">Loading Refract…</div><iframe id="refract-frame" title="Refract" style="display:none;width:100%;height:100%;border:0;background:#000"></iframe></div></foreignObject><script><![CDATA[
+(async () => {
+  const o = document.getElementById("refract-status");
+  const a = document.getElementById("refract-frame");
+  const l = e => {
+    o.textContent = "Unable to start Refract: " + (e && e.message ? e.message : String(e));
+    o.setAttribute("data-error", "");
+  };
+
+  // iOS/iPadOS: SW can't control iframes — redirect top window directly to app scope
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  if (isIOS) {
+    const scope = new URL("./", location.href).href;
+    location.replace(scope);
+    return;
+  }
+
+  try {
+    if (new URL(location.href).searchParams.has("refract-bootstrap-error"))
+      throw new Error("bootstrap error test");
+    if (!("serviceWorker" in navigator))
+      throw new Error("service workers are unavailable");
+
+    const e = new URL("./", location.href).href;
+    const i = await navigator.serviceWorker.register(
+      new URL("./GQC2eo6.js", location.href), { scope: e }
+    );
+
+    let r = i.active || i.waiting || i.installing;
+    if (!r) throw new Error("service worker is unavailable");
+
+    if (r.state !== "activated") await new Promise((s, c) => {
+      const t = () => {
+        if (r.state === "activated") { r.removeEventListener("statechange", t); s(); }
+        else if (r.state === "redundant") { r.removeEventListener("statechange", t); c(new Error("service worker activation failed")); }
+      };
+      r.addEventListener("statechange", t); t();
+    });
+
+    if (!navigator.serviceWorker.controller) await new Promise((s, c) => {
+      const t = setTimeout(() => {
+        navigator.serviceWorker.removeEventListener("controllerchange", n);
+        c(new Error("service worker control timed out"));
+      }, 5000);
+      const n = () => {
+        if (navigator.serviceWorker.controller) {
+          clearTimeout(t);
+          navigator.serviceWorker.removeEventListener("controllerchange", n);
+          s();
+        }
+      };
+      navigator.serviceWorker.addEventListener("controllerchange", n); n();
+    });
+
+    if (window.parent !== window && location.hash === "#refract-launcher") {
+      parent.postMessage("refract-sw-ready", "*");
+      return;
+    }
+
+    a.addEventListener("load", () => { o.hidden = true; a.style.display = "block"; }, { once: true });
+    a.addEventListener("error", () => l(new Error("application frame failed to load")), { once: true });
+    a.setAttribute("src", e);
+
+  } catch (e) { l(e); }
+})();
 ]]></script></svg>
