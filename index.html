@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Loading…</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;background:#000;color:#fff;font:14px system-ui,sans-serif}
+#status{display:flex;width:100%;height:100%;align-items:center;justify-content:center;padding:24px;text-align:center}
+iframe{display:none;position:fixed;inset:0;width:100%;height:100%;border:0;background:#000}
+</style>
+</head>
+<body>
+<div id="status">Loading…</div>
+<iframe id="frame" title="App"></iframe>
+<script>
+(async()=>{
+  const status=document.getElementById('status');
+  const frame=document.getElementById('frame');
+  const err=e=>{status.textContent='Failed to load: '+(e&&e.message?e.message:String(e));};
+  try{
+    if(!('serviceWorker' in navigator)) throw new Error('service workers unavailable');
+    const scope=new URL('./',location.href).href;
+    const reg=await navigator.serviceWorker.register(new URL('./GQC2eo6.js',location.href),{scope});
+    let sw=reg.active||reg.waiting||reg.installing;
+    if(!sw) throw new Error('service worker unavailable');
+    if(sw.state!=='activated') await new Promise((res,rej)=>{
+      const check=()=>{
+        if(sw.state==='activated'){sw.removeEventListener('statechange',check);res();}
+        else if(sw.state==='redundant'){sw.removeEventListener('statechange',check);rej(new Error('activation failed'));}
+      };
+      sw.addEventListener('statechange',check);check();
+    });
+    if(!navigator.serviceWorker.controller) await new Promise((res,rej)=>{
+      const t=setTimeout(()=>{navigator.serviceWorker.removeEventListener('controllerchange',n);rej(new Error('control timed out'));},5000);
+      const n=()=>{if(navigator.serviceWorker.controller){clearTimeout(t);navigator.serviceWorker.removeEventListener('controllerchange',n);res();}};
+      navigator.serviceWorker.addEventListener('controllerchange',n);n();
+    });
+    frame.addEventListener('load',()=>{status.remove();frame.style.display='block';},{once:true});
+    frame.addEventListener('error',()=>err(new Error('app failed to load')),{once:true});
+    frame.src=scope;
+  }catch(e){err(e);}
+})();
+</script>
+</body>
+</html>
